@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Article {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug              String            @unique @db.VarChar(255)
+  title             String            @db.VarChar(255)
+  excerpt           String?
+  type              String            @db.VarChar(10)
+  cover_image_url   String?
+  author_id         String            @db.Uuid
+  published_at      DateTime?         @db.Timestamptz(6)
+  is_published      Boolean           @default(false)
+  view_count        Int               @default(0)
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+  intro_gamer       String?
+  intro_dev         String?
+  pixel_section     String?
+  story_section     String?
+  connecting_thread String?
+  open_question     String?
+  difficulty        String?           @db.VarChar(30)
+  news_hook         String?
+  source_url        String?
+  gamer_angle       String?
+  dev_angle         String?
+  User              User              @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ArticleGameLink   ArticleGameLink[]
+  ArticleTag        ArticleTag[]
+  Bookmark          Bookmark[]
+  Comment           Comment[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ArticleGameLink {
+  article_id String   @db.Uuid
+  game_id    String   @db.Uuid
+  Article    Article  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  GamePage   GamePage @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([article_id, game_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ArticleTag {
+  article_id String  @db.Uuid
+  tag_id     String  @db.Uuid
+  Article    Article @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Tag        Tag     @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([article_id, tag_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Bookmark {
+  user_id    String   @db.Uuid
+  article_id String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  Article    Article  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, article_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Comment {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  body          String
+  author_id     String    @db.Uuid
+  article_id    String    @db.Uuid
+  parent_id     String?   @db.Uuid
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
+  Article       Article   @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User          User      @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Comment       Comment?  @relation("CommentToComment", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  other_Comment Comment[] @relation("CommentToComment")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Follow {
+  follower_id                    String   @db.Uuid
+  following_id                   String   @db.Uuid
+  created_at                     DateTime @default(now()) @db.Timestamptz(6)
+  User_Follow_follower_idToUser  User     @relation("Follow_follower_idToUser", fields: [follower_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User_Follow_following_idToUser User     @relation("Follow_following_idToUser", fields: [following_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([follower_id, following_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model GamePage {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug              String            @unique @db.VarChar(255)
+  title             String            @db.VarChar(255)
+  release_year      Int?
+  platform          String[]
+  developer         String?           @db.VarChar(255)
+  genra             String[]
+  era               String?           @db.VarChar(50)
+  primary_tech_tags String[]
+  description       String?
+  cover_image_url   String?
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  ArticleGameLink   ArticleGameLink[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Tag {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String       @unique @db.VarChar(50)
+  slug       String       @unique @db.VarChar(50)
+  ArticleTag ArticleTag[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model User {
+  id                               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                         String     @unique @db.VarChar(30)
+  email                            String     @unique @db.VarChar(255)
+  password_hash                    String?
+  avatar_url                       String?
+  role                             String     @db.VarChar(10)
+  bio                              String?
+  favorite_genres                  String[]
+  created_at                       DateTime   @default(now()) @db.Timestamptz(6)
+  dev_role                         String?    @db.VarChar(50)
+  portfolio_links                  Json?
+  games_worked_on                  String[]
+  badge                            String     @default("Player") @db.VarChar(30)
+  Article                          Article[]
+  Bookmark                         Bookmark[]
+  Comment                          Comment[]
+  Follow_Follow_follower_idToUser  Follow[]   @relation("Follow_follower_idToUser")
+  Follow_Follow_following_idToUser Follow[]   @relation("Follow_following_idToUser")
+}
