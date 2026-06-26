@@ -11,9 +11,11 @@ export default defineConfig({
   datasource: {
     url: process.env.DIRECT_URL!,
   },
-  migrations: {                                                              //  migrations, not migrate
+  migrations: {                    //  NSeeding configuration for migrations
     seed: 'tsx ./prisma/seed.ts',
   },
+
+  //URL to my postgres database, using the DIRECT_URL environment variable from .env
   migrate: {
     async adapter() {
       const { PrismaPg } = await import('@prisma/adapter-pg')
