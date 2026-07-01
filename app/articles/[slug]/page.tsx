@@ -1,6 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import BookmarkButton from '@/components/BookmarkButtom'
+import CommentList from '@/components/CommentList'
+import CommentForm from '@/components/CommentForm'
 
 async function getArticle(slug: string) {
   return await prisma.article.findUnique({
@@ -31,22 +35,33 @@ export default async function ArticlePage({
 
   const tags = article.ArticleTag.map((at) => at.Tag)
   const games = article.ArticleGameLink.map((lg) => lg.GamePage)
+  
+  //fetch the session and bookmark status
+  const supabase = await createClient()
+  const { data: {user } } = await supabase.auth.getUser()
 
+  let isBookmarked = false
+  if (user) {
+    const customUser = await prisma.user.findUnique({
+      where: { email: user.email!},
+      select: {id:true},
+    })
+    if(customUser) {
+      const bookmark = await prisma.bookmark.findUnique({
+        where: {
+          user_id_article_id: {
+            user_id: customUser.id,
+            article_id: article.id,
+          },
+        },
+      })
+      isBookmarked = !!bookmark
+    }
+  }
+  
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
-      {/* Navbar */}
-      <header className="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-        <Link
-          href="/"
-          className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent"
-        >
-          Lore &amp; Logic
-        </Link>
-        <div className="space-x-4 text-sm text-gray-300">
-          <Link href="/signup">Sign Up</Link>
-          <Link href="/login">Login</Link>
-        </div>
-      </header>
+      
 
       {/* Article Header */}
       <div className="max-w-4xl mx-auto px-4 pt-12 pb-6">
@@ -67,14 +82,23 @@ export default async function ArticlePage({
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4">
           {article.title}
         </h1>
+        
+        {/* Bookmark button, looks bad but works for some time */}
+        {user && ( 
+          <div className="mt-2">
+            <BookmarkButton articleId = { article.id} initialBookmarked={isBookmarked} />
+            </div>
+        )}
 
         <div className="flex items-center gap-3 text-gray-400 text-sm mb-6">
-          <span className="flex items-center gap-1">
-            <span className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold">
+         
+          <Link href={`/profile/${article.User.username}`} className="flex items-center gap-1 hover:text-white transition" >
+              <span className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold">
               {article.User.username[0].toUpperCase()}
-            </span>
-            {article.User.username}
-          </span>
+              </span>
+              {article.User.username}
+          </Link>
+         
           <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-xs uppercase font-semibold">
             {article.User.badge}
           </span>
@@ -198,7 +222,12 @@ export default async function ArticlePage({
                 {article.User.username[0].toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-white">{article.User.username}</p>
+                <Link
+                    href={`/profile/${article.User.username}`}
+                    className="hover:text-white transition"
+                >
+                    {article.User.username}
+                </Link>
                 <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full uppercase">
                   {article.User.badge}
                 </span>
@@ -255,6 +284,27 @@ export default async function ArticlePage({
           )}
         </aside>
       </div>
+      {/* Comments Section */}
+        <div className="max-w-4xl mx-auto px-4 pb-16">
+           <hr className="border-gray-800 mb-8" />
+           <h2 className="text-2xl font-bold mb-6">💬 Comments</h2>
+
+        {/* Check if user is logged in to show the top-level form */}
+        {/* To show a message like "Log in to comment", let me pass a prop from the page.
+      The page already has `user` from the Supabase session.*/}
+            {user ? (
+            <div className="mb-8">
+              <CommentForm articleId={article.id} />
+            </div>
+          ) : (
+            <div className="mb-8 text-gray-400 text-sm">
+              <Link href="/login" className="text-purple-400 hover:underline">Log in</Link> to join the discussion.
+            </div>
+           )}
+
+            {/* Render comment list */}
+                <CommentList articleId={article.id} />
+        </div>
     </div>
   )
 }

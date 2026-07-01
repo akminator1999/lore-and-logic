@@ -28,19 +28,7 @@ export default async function DeepDivesPage() {
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
-      {/* Navbar – same as other pages (will refactor later) */}
-      <header className="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-        <Link
-          href="/"
-          className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent"
-        >
-          Lore &amp; Logic
-        </Link>
-        <div className="space-x-4 text-sm text-gray-300">
-          <Link href="/signup">Sign Up</Link>
-          <Link href="/login">Login</Link>
-        </div>
-      </header>
+      
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         <h1 className="text-4xl font-extrabold mb-2">Deep Dives</h1>
@@ -86,7 +74,9 @@ export default async function DeepDivesPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
-                    <span>{article.User.username}</span>
+                    <Link href={`/profile/${article.User.username}`} className="hover:text-white transition">
+                       {article.User.username}
+                    </Link>
                     <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded uppercase">
                       {article.User.badge}
                     </span>

@@ -39,19 +39,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
-      {/* Navbar – same as article page */}
-      <header className="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-        <Link
-          href="/"
-          className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent"
-        >
-          Lore &amp; Logic
-        </Link>
-        <div className="space-x-4 text-sm text-gray-300">
-          <Link href="/signup">Sign Up</Link>
-          <Link href="/login">Login</Link>
-        </div>
-      </header>
+      
 
       {/* Hero Section */}
       <section className="text-center py-20 px-4">
@@ -165,7 +153,7 @@ export default async function HomePage() {
                 <h3 className="font-bold text-lg mb-1">{article.title}</h3>
                 <p className="text-gray-400 text-sm line-clamp-3">{article.excerpt}</p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                  <span>{article.User.username}</span>
+                <span>{article.User.username}</span>
                   <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded uppercase">
                     {article.User.badge}
                   </span>
