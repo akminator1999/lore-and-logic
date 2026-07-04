@@ -37,16 +37,19 @@ export default async function ArticlePage({
   const games = article.ArticleGameLink.map((lg) => lg.GamePage)
   
   //fetch the session and bookmark status
+  //fetch the current user id to pass to CommentList and CommentActions
   const supabase = await createClient()
   const { data: {user } } = await supabase.auth.getUser()
 
   let isBookmarked = false
+  let currentUserId: string | null = null
   if (user) {
     const customUser = await prisma.user.findUnique({
       where: { email: user.email!},
       select: {id:true},
     })
     if(customUser) {
+      currentUserId = customUser.id
       const bookmark = await prisma.bookmark.findUnique({
         where: {
           user_id_article_id: {
@@ -303,7 +306,7 @@ export default async function ArticlePage({
            )}
 
             {/* Render comment list */}
-                <CommentList articleId={article.id} />
+                <CommentList articleId={article.id} currentUserId={currentUserId} />
         </div>
     </div>
   )

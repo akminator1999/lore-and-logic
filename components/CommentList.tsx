@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import ReplyToggle from './ReplyToggle'
+import CommentActions from './CommentActions'
 
-// 1. Explicitly describe the shape of a comment with its author
+// Explicitly describe the shape of a comment with its author
 interface CommentWithUser {
   id: string
   body: string
@@ -11,13 +12,14 @@ interface CommentWithUser {
   author_id: string
   article_id: string
   parent_id: string | null
+  deleted: boolean  // Add the deleted field to the interface
   User: {
     username: string
     badge: string
   }
 }
 
-// 2. Tree node extends that shape with children
+// Tree node extends that shape with children
 interface CommentTree extends CommentWithUser {
   children: CommentTree[]
 }
@@ -31,7 +33,7 @@ async function getComments(articleId: string): Promise<CommentTree[]> {
     },
   })
 
-  // 3. Build the tree using our explicit type
+  // Build the tree using our explicit type
   const map = new Map<string, CommentTree>()
   const roots: CommentTree[] = []
 
@@ -62,10 +64,12 @@ function CommentNode({
   comment,
   articleId,
   depth = 0,
+  currentUserId,
 }: {
   comment: CommentTree
   articleId: string
   depth?: number
+  currentUserId: string | null
 }) {
   return (
     <div
@@ -74,16 +78,23 @@ function CommentNode({
       } mt-4`}
     >
       <div className="bg-[#131a2c] rounded-lg p-4">
+        {/* ---- HEADER: Show [removed] if deleted ---- */}
         <div className="flex items-center gap-2 text-sm mb-2">
-          <Link
-            href={`/profile/${comment.User.username}`}
-            className="font-semibold hover:text-purple-300 transition"
-          >
-            {comment.User.username}
-          </Link>
-          <span className="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded uppercase">
-            {comment.User.badge}
-          </span>
+          {comment.deleted ? (
+            <span className="text-gray-500 text-xs">[removed]</span>
+          ) : (
+            <>
+              <Link
+                href={`/profile/${comment.User.username}`}
+                className="font-semibold hover:text-purple-300 transition"
+              >
+                {comment.User.username}
+              </Link>
+              <span className="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded uppercase">
+                {comment.User.badge}
+              </span>
+            </>
+          )}
           <span className="text-gray-500 text-xs">
             {new Date(comment.created_at).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -92,10 +103,28 @@ function CommentNode({
             })}
           </span>
         </div>
-        <p className="text-gray-200 text-sm whitespace-pre-wrap">
-          {comment.body}
-        </p>
-        <ReplyToggle articleId={articleId} parentId={comment.id} />
+
+        {/* ---- BODY: [removed] text or actual body ---- */}
+        {comment.deleted ? (
+          <p className="text-gray-500 italic text-sm">[removed]</p>
+        ) : (
+          <p className="text-gray-200 text-sm whitespace-pre-wrap">
+            {comment.body}
+          </p>
+        )}
+         {/* ---- ACTIONS: Only show for non‑deleted comments ---- */}
+        {!comment.deleted && (
+          <>
+            <ReplyToggle articleId={articleId} parentId={comment.id} />
+            {currentUserId && comment.author_id === currentUserId && (
+              <CommentActions
+                commentId={comment.id}
+                initialBody={comment.body}
+                currentUserId={currentUserId}
+              />
+            )}
+          </>
+        )}
       </div>
 
       {comment.children.map((child) => (
@@ -104,16 +133,19 @@ function CommentNode({
           comment={child}
           articleId={articleId}
           depth={depth + 1}
+          currentUserId={currentUserId}
         />
       ))}
     </div>
   )
 }
-
+//Export-->Make sure commenttree interface still includes author_id, if TS complains add author_id: string to commentwithUser interface
 export default async function CommentList({
   articleId,
+  currentUserId,
 }: {
   articleId: string
+  currentUserId: string | null
 }) {
   const roots = await getComments(articleId)
 
@@ -132,6 +164,7 @@ export default async function CommentList({
           key={comment.id}
           comment={comment}
           articleId={articleId}
+          currentUserId={currentUserId}
         />
       ))}
     </div>

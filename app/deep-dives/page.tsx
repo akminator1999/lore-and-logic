@@ -74,9 +74,12 @@ export default async function DeepDivesPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500 mt-auto">
+                    <span>{article.User.username}</span>
+                    {/*nested <a> error will resolve later
                     <Link href={`/profile/${article.User.username}`} className="hover:text-white transition">
                        {article.User.username}
                     </Link>
+                    */}
                     <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded uppercase">
                       {article.User.badge}
                     </span>
