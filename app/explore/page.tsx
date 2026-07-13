@@ -60,7 +60,7 @@ export default async function ExplorePage({
   const { era } = await searchParams
   const articles = await getArticlesByEra(era)
 
-  const eraPills = ['All', '8-bit', '16-bit', 'Early 3D', 'PS2/Xbox', 'Modern Indie', 'VR']
+  const eraPills = ['All', '8-bit', '16-bit', 'Early 3D', 'PS2/Xbox','PS3/Xbox 360','PS4/Xbox One','Modern AAA', 'Modern Indie', 'VR']
   const pageTitle = era && era !== 'All' ? `Explore: ${era}` : 'Explore All Eras'
 
   return (

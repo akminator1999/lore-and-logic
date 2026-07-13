@@ -168,7 +168,7 @@ export default async function HomePage() {
       <section className="max-w-5xl mx-auto px-4 mb-16">
         <h2 className="text-2xl font-bold mb-4 text-center">Explore by Era</h2>
         <div className="flex flex-wrap justify-center gap-3">
-          {['All', '8-bit', '16-bit', 'Early 3D', 'PS2/Xbox', 'Modern Indie', 'VR'].map((era) => (
+          {['All', '8-bit', '16-bit', 'Early 3D', 'PS2/Xbox','PS3/Xbox 360','PS4/Xbox One','Modern AAA', 'Modern Indie', 'VR'].map((era) => (
             <Link
               key={era}
               href={`/explore?era=${encodeURIComponent(era)}`}

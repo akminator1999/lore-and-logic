@@ -118,11 +118,11 @@ export default async function ArticlePage({
       </div>
       {/* Cover Image */}
       {article.cover_image_url && (
-        <div className="max-w-4xl mx-auto px-4 mb-8">
+        <div className="max-w-2xl mx-auto px-4 mb-8">
             <img
                 src={article.cover_image_url}
                 alt={article.title}
-                className="w-full h-64 md:h-96 oject-cover rounded-xl shadow-lg"
+                className="max-w-full h-80 md:h-[32rem] object-cover rounded-xl shadow-lg"
             />
         </div>
       )}

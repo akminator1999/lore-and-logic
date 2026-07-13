@@ -23,13 +23,16 @@ model Article {
   view_count        Int               @default(0)
   created_at        DateTime          @default(now()) @db.Timestamptz(6)
   updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+  //... Deep-dive fields ...
   intro_gamer       String?
   intro_dev         String?
   pixel_section     String?
   story_section     String?
   connecting_thread String?
   open_question     String?
+  //... Other Fields ....
   difficulty        String?           @db.VarChar(30)
+  //... Pulse fields ...
   news_hook         String?
   source_url        String?
   gamer_angle       String?
