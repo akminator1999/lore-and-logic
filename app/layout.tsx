@@ -55,7 +55,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-[#0B0F19] text-white">
-        <header className="border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <header className="bg-[#0B0F19] border-b border-gray-800 px-6 py-4 flex justify-between items-center">
           <Link
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent"
