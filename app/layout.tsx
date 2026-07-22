@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next"
 import Link from 'next/link'
 import './globals.css'
 import type { Metadata } from 'next'
+import MobileMenu from '@/components/MobileMenu'
 
 export const metadata: Metadata = {
   title: {
@@ -62,6 +63,8 @@ export default async function RootLayout({
           >
             Lore &amp; Logic
           </Link>
+
+          {/* Desktop navigation - hidden on mobile */}
           <nav className="flex items-center space-x-4 text-sm text-gray-300">
             {supabaseUser && customUser ? (
               <>
@@ -103,6 +106,14 @@ export default async function RootLayout({
               </>
             )}
           </nav>
+          
+          {/*Mobile Menu - only visible on mobile, aligned to the right */}
+          <MobileMenu
+            isLoggedIn={!!(supabaseUser && customUser)}
+            username={customUser?.username || ''}
+            isCreator={customUser?.badge === 'Creator'}
+          />
+
         </header>
         <main className="flex-1">{children}</main>
       </body>
