@@ -6,6 +6,8 @@ import BookmarkButton from '@/components/BookmarkButtom'
 import CommentList from '@/components/CommentList'
 import CommentForm from '@/components/CommentForm'
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
+import ShareButtons from '@/components/ShareButtons'
 
 async function getArticle(slug: string) {
   return await prisma.article.findUnique({
@@ -73,11 +75,19 @@ export default async function ArticlePage({
   const { slug } = await params
   const article = await getArticle(slug)
 
+
   if (!article) notFound()
 
   const tags = article.ArticleTag.map((at) => at.Tag)
   const games = article.ArticleGameLink.map((lg) => lg.GamePage)
   
+  //get the current url
+  const headersList = await headers()
+  const host = headersList.get('host') || 'theloreandlogic.com'
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+  const currentUrl = `${protocol}://${host}/articles/${article.slug}`
+
+
   //fetch the session and bookmark status
   //fetch the current user id to pass to CommentList and CommentActions
   const supabase = await createClient()
@@ -177,8 +187,14 @@ export default async function ArticlePage({
                 alt={article.title}
                 className="max-w-full h-80 md:h-[32rem] object-cover rounded-xl shadow-lg"
             />
+            
+            {/* ShareButtons */}
+              <ShareButtons title={article.title} url={currentUrl}/>
+
         </div>
       )}
+
+      
 
       {/* Two‑column layout */}
       <div className="max-w-4xl mx-auto px-4 pb-16 grid grid-cols-1 md:grid-cols-3 gap-8">
