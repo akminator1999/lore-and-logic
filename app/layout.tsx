@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { Analytics } from "@vercel/analytics/next"
 import Link from 'next/link'
 import './globals.css'
 import type { Metadata } from 'next'
