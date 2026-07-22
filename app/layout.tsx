@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Analytics } from "@vercel/analytics/next"
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import type { Metadata } from 'next'
 
@@ -105,6 +106,7 @@ export default async function RootLayout({
           </nav>
         </header>
         <main className="flex-1">{children}</main>
+        <SpeedInsights />
       </body>
     </html>
   )
