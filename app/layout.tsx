@@ -65,7 +65,7 @@ export default async function RootLayout({
           </Link>
 
           {/* Desktop navigation - hidden on mobile */}
-          <nav className="flex items-center space-x-4 text-sm text-gray-300">
+          <nav className="hidden md:flex items-center space-x-4 text-sm text-gray-300">
             {supabaseUser && customUser ? (
               <>
                 <Link
