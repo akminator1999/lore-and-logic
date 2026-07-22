@@ -3,7 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  const supabase = await createClient()
+  const { data: { user }} = await supabase.auth.getUser()
+
+  //If already logged in, redirect to home
+  if (user) redirect('/')
+
   async function signup(formData: FormData) {
     'use server'
     const email = formData.get('email') as string

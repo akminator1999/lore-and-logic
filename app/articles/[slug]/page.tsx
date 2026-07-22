@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import BookmarkButton from '@/components/BookmarkButtom'
 import CommentList from '@/components/CommentList'
 import CommentForm from '@/components/CommentForm'
+import type { Metadata } from 'next'
 
 async function getArticle(slug: string) {
   return await prisma.article.findUnique({
@@ -21,6 +22,47 @@ async function getArticle(slug: string) {
       },
     },
   })
+}
+
+export async function generateMetadata(
+  { params } : { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params
+  const article = await getArticle(slug)
+
+  if(!article) {
+    return {
+      title: 'Article not found',
+      description: 'The article you are looking for does not exist.'
+    }
+  }
+
+  const ogImage = article.cover_image_url || '/logo.png'
+
+  return {
+    title: article.title,
+    description: article.excerpt || `${article.type === 'deep_dive' ? 'Deep dive' : 'News'} on Lore & Logic`,
+    openGraph: {
+      title: article.title,
+      description: article.excerpt || undefined,
+      type: 'article',
+      publishedTime: article.published_at?.toISOString(),
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt || undefined,
+      images: [ogImage],
+    },
+  }
 }
 
 export default async function ArticlePage({
@@ -86,6 +128,17 @@ export default async function ArticlePage({
           {article.title}
         </h1>
         
+        {/**Edit Button For the creator */}
+        {currentUserId && article.author_id === currentUserId && (
+          <Link 
+          href={`/articles/${article.slug}/edit`}
+          className="inline-block ml-3 text-sm text-amber-400 hover:text-amber-300 align-middle"
+          >
+           ✏️ Edit 
+          </Link>
+        )}
+        
+
         {/* Bookmark button, looks bad but works for some time */}
         {user && ( 
           <div className="mt-2">

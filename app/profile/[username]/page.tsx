@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
 async function getUserProfile(username: string) {
   return await prisma.user.findUnique({
@@ -8,7 +9,7 @@ async function getUserProfile(username: string) {
     select: {
       id: true,
       username: true,
-      email: true, // careful: only show if you want; we'll omit it for privacy
+      email: true, // careful: only show if you want; we'll omit it for privacy,but we need to check if the currently logged-in user is viewing their own profile.
       avatar_url: true,
       role: true,
       bio: true,
@@ -43,7 +44,11 @@ export default async function ProfilePage({
   const { username } = await params
   const profile = await getUserProfile(username)
 
-  if (!profile) notFound()
+  if (!profile) notFound()   // ← must be before accessing profile.email
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()   // ← add 'await' here
+  const isOwner = user?.email === profile.email
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
@@ -59,6 +64,14 @@ export default async function ProfilePage({
               <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-xs uppercase font-semibold">
                 {profile.badge}
               </span>
+              {isOwner && (
+                <Link
+                  href="/profile/edit"
+                  className="ml-3 text-sm text-amber-400 hover:text-amber-300"
+                >
+                  ✏️ Edit Profile
+                </Link>
+              )}
               <span className="bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-xs uppercase">
                 {profile.role === 'developer' ? '🔧 Developer' : '🎮 Gamer'}
               </span>

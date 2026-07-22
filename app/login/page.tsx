@@ -2,7 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createClient()
+  const { data: { user }} = await supabase.auth.getUser()
+
+  //If already logged in, redirect to home
+  if (user) redirect('/')
+
   async function login(formData: FormData) {
     'use server'
     const email = formData.get('email') as string

@@ -1,7 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
+import { Analytics } from "@vercel/analytics/next"
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import './globals.css'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Lore & Logic',
+    template: '%s | Lore & Logic', //%s will be replaced by the page title
+  },
+  description: 'The coomunity where gamers and developers connect to explore how games are made - from the pixel to the story, across every era.',
+  openGraph: {
+    siteName: 'Lore & Logic',
+    title: 'Lore & Logic',
+    description: 'The community where gamers and developers conect to explore how games are made.',
+    url: 'https://theloreandlogic.com',
+    type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'Lore & Logic'
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Lore & Logic',
+    description: 'The community where gamers and developers connect.',
+    images: ['/logo.png'],
+  },
+}
 
 export default async function RootLayout({
   children,
@@ -17,7 +48,7 @@ export default async function RootLayout({
   if (supabaseUser?.email) {
     customUser = await prisma.user.findUnique({
       where: { email: supabaseUser.email },
-      select: { username: true },
+      select: { username: true, badge: true },
     })
   }
 
@@ -43,8 +74,17 @@ export default async function RootLayout({
                   </div>
                   <span className="hidden md:inline">{customUser.username}</span>
                 </Link>
+                {customUser.badge === 'Creator' && (
+                  <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
+                )}
+                <Link href="/write" className="hover:text-white transition">
+                  Write
+                </Link>
                 <Link href="/bookmarks" className="hover:text-white transition">
                   Bookmarks
+                </Link>
+                <Link href="/change-password" className="hover:text-white transition">
+                  Change Password
                 </Link>
                 <form action="/auth/signout" method="post">
                   <button className="hover:text-white transition">
