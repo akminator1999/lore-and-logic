@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 interface MobileMenuProps {
   isLoggedIn: boolean
@@ -11,6 +13,7 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isLoggedIn, username, isCreator }: MobileMenuProps) {
   const [open, setOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <>
@@ -98,14 +101,18 @@ export default function MobileMenu({ isLoggedIn, username, isCreator }: MobileMe
                     Change Password
                   </Link>
 
-                  <form action="/auth/signout" method="post">
-                    <button
-                      onClick={() => setOpen(false)}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 transition text-gray-300 hover:text-white"
-                    >
-                      Logout
-                    </button>
-                  </form>
+                  <button
+                    onClick={async () => {
+                        setOpen(false)
+                        const supabase = createClient()
+                        await supabase.auth.signOut()
+                        router.push(',')
+                        router.refresh()
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 transition text-gray-300 hover:text-white"
+                  >
+                    Logout
+                  </button>
                 </>
               ) : (
                 <>
