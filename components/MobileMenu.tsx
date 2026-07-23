@@ -101,25 +101,21 @@ export default function MobileMenu({ isLoggedIn, username, isCreator }: MobileMe
                     Change Password
                   </Link>
 
-                  <button
-                    onClick={async () => {
-                        setOpen(false)
-                        const supabase = createClient()
-                        await supabase.auth.signOut()
-                        router.push(',')
-                        router.refresh()
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 transition text-gray-300 hover:text-white"
-                  >
-                    Logout
-                  </button>
+                  <form action="/auth/signout" method="post">
+                        <button
+                            type="submit"
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800  transition text-gray-300 hover:text-white"
+                        >
+                            Logout
+                        </button>
+                    </form>
                 </>
               ) : (
                 <>
                   <Link
                     href="/login"
                     onClick={() => setOpen(false)}
-                    className="px-3 py-2 rounded-lg hover:bg-gray-800 transition text-gray-300 hover:text-white"
+                    className="px-3 py-2 rounded-lg border border-purple-400 text-purple-400 hover:bg-purple-400/10 text-center font-semibold transition"
                   >
                     Login
                   </Link>
