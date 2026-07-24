@@ -5,6 +5,7 @@ import Link from 'next/link'
 import './globals.css'
 import type { Metadata } from 'next'
 import MobileMenu from '@/components/MobileMenu'
+import SearchBar from '@/components/SearchBar'
 
 export const metadata: Metadata = {
   title: {
@@ -56,7 +57,9 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-[#0B0F19] text-white">
-        <header className="bg-[#0B0F19] border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <header className="bg-[#0B0F19] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+          
+          {/* Logo: Left */}
           <Link
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent"
@@ -64,8 +67,12 @@ export default async function RootLayout({
             Lore &amp; Logic
           </Link>
 
-          {/* Desktop navigation - hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-4 text-sm text-gray-300">
+          {/* Right: Desktop navigation - hidden on mobile */}
+          <nav className="hidden md:flex items-center space-x-4 text-sm text-gray-300 ml-auto">
+
+            {/* Search bar first */}
+            <SearchBar />
+
             {supabaseUser && customUser ? (
               <>
                 <Link
@@ -105,15 +112,18 @@ export default async function RootLayout({
                 </Link>
               </>
             )}
-          </nav>
-          
-          {/*Mobile Menu - only visible on mobile, aligned to the right */}
-          <MobileMenu
-            isLoggedIn={!!(supabaseUser && customUser)}
-            username={customUser?.username || ''}
-            isCreator={customUser?.badge === 'Creator'}
-          />
+          </nav>         
 
+          {/*Mobile Menu - only visible on mobile, aligned to the right */}
+
+          <div className="flex md:hidden items-center gap-2">
+            <SearchBar />
+            <MobileMenu
+              isLoggedIn={!!(supabaseUser && customUser)}
+              username={customUser?.username || ''}
+              isCreator={customUser?.badge === 'Creator'}
+            />
+          </div>
         </header>
         <main className="flex-1">{children}</main>
       </body>
