@@ -6,6 +6,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import MobileMenu from '@/components/MobileMenu'
 import SearchBar from '@/components/SearchBar'
+import NotificationBell from '@/components/NotificationBell'
 
 export const metadata: Metadata = {
   title: {
@@ -73,6 +74,9 @@ export default async function RootLayout({
             {/* Search bar first */}
             <SearchBar />
 
+            {/* Notification Bell */}
+            { supabaseUser && customUser && <NotificationBell/>}
+
             {supabaseUser && customUser ? (
               <>
                 <Link
@@ -118,6 +122,7 @@ export default async function RootLayout({
 
           <div className="flex md:hidden items-center gap-2">
             <SearchBar />
+            {supabaseUser && customUser && <NotificationBell/>}
             <MobileMenu
               isLoggedIn={!!(supabaseUser && customUser)}
               username={customUser?.username || ''}

@@ -17,7 +17,7 @@ export async function addComment(
 
     const customUser = await prisma.user.findUnique({
         where: {email: user.email! },
-        select: {id: true},
+        select: {id: true, username: true},
     })
 
     if(!customUser) throw new Error('Profile not found')
@@ -30,6 +30,31 @@ export async function addComment(
             parent_id: parentId || null,
         },
     })
+
+    //Comment action to create a notification
+   if (parentId) {
+  // Fetch the parent comment to get its author
+  const parent = await prisma.comment.findUnique({
+    where: { id: parentId },
+    select: { id: true,author_id: true, body: true, article_id: true },
+  })
+
+  if (parent && parent.author_id !== customUser.id) {
+    const article = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: { slug: true },
+    })
+
+    await prisma.notification.create({
+      data: {
+        user_id: parent.author_id,
+        type: 'comment_reply',
+        message: `${customUser.username} replied to your comment: "${parent.body.slice(0, 80)}${parent.body.length > 80 ? '...' : ''}"`,
+        link: article ? `/articles/${article.slug}#comment-${parent.id}` : null,
+      },
+    })
+  }
+}
 
     //Revalidate the article page to new comments appear
 
