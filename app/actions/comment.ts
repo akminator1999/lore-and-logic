@@ -36,7 +36,7 @@ export async function addComment(
   // Fetch the parent comment to get its author
   const parent = await prisma.comment.findUnique({
     where: { id: parentId },
-    select: { id: true,author_id: true, body: true, article_id: true },
+    select: { id: true, author_id: true, body: true, article_id: true },
   })
 
   if (parent && parent.author_id !== customUser.id) {

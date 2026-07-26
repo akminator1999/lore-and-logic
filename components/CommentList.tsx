@@ -114,17 +114,17 @@ function CommentNode({
         )}
          {/* ---- ACTIONS: Only show for non‑deleted comments ---- */}
         {!comment.deleted && (
-          <>
-            <ReplyToggle articleId={articleId} parentId={comment.id} />
-            {currentUserId && comment.author_id === currentUserId && (
-              <CommentActions
-                commentId={comment.id}
-                initialBody={comment.body}
-                currentUserId={currentUserId}
-              />
-            )}
-          </>
-        )}
+  <>
+    <ReplyToggle
+      articleId={articleId}
+      parentId={comment.id}
+      isLoggedIn={currentUserId !== null}
+    />
+    {currentUserId && comment.author_id === currentUserId && (
+      <CommentActions commentId={comment.id} initialBody={comment.body} currentUserId={currentUserId} />
+    )}
+  </>
+)}
       </div>
 
       {comment.children.map((child) => (

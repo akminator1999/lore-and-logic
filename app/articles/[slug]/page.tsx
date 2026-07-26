@@ -365,14 +365,14 @@ export default async function ArticlePage({
         {/* To show a message like "Log in to comment", let me pass a prop from the page.
       The page already has `user` from the Supabase session.*/}
             {user ? (
-            <div className="mb-8">
-              <CommentForm articleId={article.id} />
+              <div className="mb-8">
+                <CommentForm articleId={article.id} />
             </div>
-          ) : (
-            <div className="mb-8 text-gray-400 text-sm">
+            ) : (
+            <div className="mb-8 text-gray-400 text-sm text-center p-4 bg-[#131a2c] rounded-lg">
               <Link href="/login" className="text-purple-400 hover:underline">Log in</Link> to join the discussion.
             </div>
-           )}
+            )}
 
             {/* Render comment list */}
                 <CommentList articleId={article.id} currentUserId={currentUserId} />

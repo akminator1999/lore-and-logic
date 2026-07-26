@@ -6,11 +6,15 @@ import CommentForm from './CommentForm'
 export default function ReplyToggle({
   articleId,
   parentId,
+  isLoggedIn,
 }: {
   articleId: string
   parentId: string
+  isLoggedIn: boolean
 }) {
   const [showForm, setShowForm] = useState(false)
+
+  if(!isLoggedIn) return null // Don't show reply button for guest
 
   return (
     <div>

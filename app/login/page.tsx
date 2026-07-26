@@ -2,11 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string}>
+})  {
+  const { error } = await searchParams
   const supabase = await createClient()
   const { data: { user }} = await supabase.auth.getUser()
-
-  //If already logged in, redirect to home
   if (user) redirect('/')
 
   async function login(formData: FormData) {
@@ -33,6 +36,13 @@ export default async function LoginPage() {
         <h1 className="text-3xl font-bold mb-6 text-center">
           Log in to <span className="text-purple-400">Lore &amp; Logic</span>
         </h1>
+
+        {/*Show error if present */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {decodeURIComponent(error)}
+          </div>
+        )}
 
         <form action={login} className="space-y-4">
           <div>
@@ -65,6 +75,13 @@ export default async function LoginPage() {
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-cyan-400 hover:underline">
             Sign up
+          </Link>
+        </p>
+
+        {/*Forgot password link (we'll add next) */}
+        <p className="text-center mt-2">
+          <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-purple-400 transition">
+            Forgot password?
           </Link>
         </p>
       </div>
