@@ -66,8 +66,10 @@ export default function MobileMenu({ isLoggedIn, username, isCreator }: MobileMe
                     </div>
                     <span>{username}</span>
                   </Link>
-
-                  {isCreator && (
+                <Link href="/following" onClick={() => setOpen(false)} className="px-3 py-2 rounded-lg hover:bg-gray-800 transition text-gray-300 hover:text-white">
+                    Following
+                </Link>
+                {isCreator && (
                     <Link
                       href="/dashboard"
                       onClick={() => setOpen(false)}

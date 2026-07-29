@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import FollowButton from '@/components/FollowButton'
+import { getFollowState, getFollowCounts} from '@/app/actions/follow'
 
 async function getUserProfile(username: string) {
   return await prisma.user.findUnique({
@@ -36,19 +38,40 @@ async function getUserProfile(username: string) {
   })
 }
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ username: string }>
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
   const profile = await getUserProfile(username)
-
-  if (!profile) notFound()   // ← must be before accessing profile.email
+  if (!profile) notFound()
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()   // ← add 'await' here
+  const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.email === profile.email
+
+  // Get current user's custom ID for follow state
+  let currentUserId: string | null = null
+  if (user) {
+    const cu = await prisma.user.findUnique({ 
+      where: { email: user.email! }, 
+      select: { id: true } 
+    })
+    currentUserId = cu?.id ?? null
+  }
+
+  // Follow state and counts
+  let isFollowing = false
+  let followers = 0
+  let following = 0
+  if (!isOwner && currentUserId) {
+    const { getFollowState, getFollowCounts } = await import('@/app/actions/follow')
+    isFollowing = await getFollowState(profile.id)
+    const counts = await getFollowCounts(profile.id)
+    followers = counts.followers
+    following = counts.following
+  } else {
+    const counts = await getFollowCounts(profile.id)
+    followers = counts.followers
+    following = counts.following
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
@@ -64,6 +87,8 @@ export default async function ProfilePage({
               <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-xs uppercase font-semibold">
                 {profile.badge}
               </span>
+
+              {/*Edit button for profile */}
               {isOwner && (
                 <Link
                   href="/profile/edit"
@@ -71,6 +96,11 @@ export default async function ProfilePage({
                 >
                   ✏️ Edit Profile
                 </Link>
+              )}
+
+              {/*The Follow button */}
+              {!isOwner && currentUserId && (
+                <FollowButton followingId={profile.id} initialIsFollowing={isFollowing}/>
               )}
               <span className="bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-xs uppercase">
                 {profile.role === 'developer' ? '🔧 Developer' : '🎮 Gamer'}
@@ -96,6 +126,11 @@ export default async function ProfilePage({
                 Developer role: {profile.dev_role}
               </p>
             )}
+            <div className="flex gap-4 mt-3 text-sm text-gray-400">
+              <span><strong className="text-white">{followers}</strong> followers</span>
+              {''}|{''}
+              <span><strong className="text-white">{following}</strong> following</span>
+            </div>
             <p className="text-gray-500 text-xs mt-2">
               Joined{' '}
               {new Date(profile.created_at).toLocaleDateString('en-US', {

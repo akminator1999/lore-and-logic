@@ -88,9 +88,17 @@ export default async function RootLayout({
                   </div>
                   <span className="hidden md:inline">{customUser.username}</span>
                 </Link>
+                
+                <Link href="/following" className="hover:text-white transition">
+                  Following
+                </Link>
+                
                 {customUser.badge === 'Creator' && (
-                  <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
+                  <Link href="/dashboard" className="hover:text-white transition">
+                    Dashboard
+                  </Link>
                 )}
+                
                 <Link href="/write" className="hover:text-white transition">
                   Write
                 </Link>
