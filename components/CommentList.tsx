@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import ReplyToggle from './ReplyToggle'
 import CommentActions from './CommentActions'
+import CommentLikeDislike from './CommentLikeDislike'
 
 // Explicitly describe the shape of a comment with its author
 interface CommentWithUser {
@@ -17,6 +18,7 @@ interface CommentWithUser {
     username: string
     badge: string
   }
+  CommentLike: { user_id: string; type: string}[]
 }
 
 // Tree node extends that shape with children
@@ -24,12 +26,13 @@ interface CommentTree extends CommentWithUser {
   children: CommentTree[]
 }
 
-async function getComments(articleId: string): Promise<CommentTree[]> {
+async function getComments(articleId: string, currentUserId: string | null): Promise<CommentTree[]> {
   const comments = await prisma.comment.findMany({
     where: { article_id: articleId },
     orderBy: { created_at: 'asc' },
     include: {
       User: { select: { username: true, badge: true } },
+      CommentLike: { select: { user_id: true, type: true}},
     },
   })
 
@@ -59,6 +62,7 @@ async function getComments(articleId: string): Promise<CommentTree[]> {
   return roots
 }
 
+
 // Recursive comment component
 function CommentNode({
   comment,
@@ -70,7 +74,13 @@ function CommentNode({
   articleId: string
   depth?: number
   currentUserId: string | null
+  
 }) {
+  // Calculate likes, dislikes, and user vote for this comment
+  const likes= comment.CommentLike.filter(l => l.type === 'like').length
+  const dislikes= comment.CommentLike.filter(l => l.type === 'dislike').length
+  const userVote = currentUserId ? comment.CommentLike.find(l => l.user_id === currentUserId)?.type ?? null : null
+
   return (
     <div
       className={`${
@@ -108,9 +118,20 @@ function CommentNode({
         {comment.deleted ? (
           <p className="text-gray-500 italic text-sm">[removed]</p>
         ) : (
-          <p className="text-gray-200 text-sm whitespace-pre-wrap">
+          <>
+            <p className="text-gray-200 text-sm whitespace-pre-wrap">
             {comment.body}
           </p>
+
+          {!comment.deleted && (
+            <CommentLikeDislike
+              commentId={comment.id}
+              initialLikes={likes}
+              initialDislikes={dislikes}
+              initialUserVote={userVote}
+          />
+          )}       
+          </>
         )}
          {/* ---- ACTIONS: Only show for non‑deleted comments ---- */}
         {!comment.deleted && (
@@ -147,7 +168,7 @@ export default async function CommentList({
   articleId: string
   currentUserId: string | null
 }) {
-  const roots = await getComments(articleId)
+  const roots = await getComments(articleId, currentUserId)
 
   if (roots.length === 0) {
     return (

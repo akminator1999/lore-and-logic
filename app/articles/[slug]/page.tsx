@@ -8,6 +8,8 @@ import CommentForm from '@/components/CommentForm'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import ShareButtons from '@/components/ShareButtons'
+import { getArticleLikeInfo } from '@/app/actions/likes'
+import ArticleLikeDislike from '@/components/ArticleLikeDislike'
 
 async function getArticle(slug: string) {
   return await prisma.article.findUnique({
@@ -87,11 +89,13 @@ export default async function ArticlePage({
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const currentUrl = `${protocol}://${host}/articles/${article.slug}`
 
-
   //fetch the session and bookmark status
   //fetch the current user id to pass to CommentList and CommentActions
   const supabase = await createClient()
   const { data: {user } } = await supabase.auth.getUser()
+  
+  //fetch like counts and current user's vote for the article
+  const likeInfo = await getArticleLikeInfo(article.id)
 
   let isBookmarked = false
   let currentUserId: string | null = null
@@ -137,24 +141,6 @@ export default async function ArticlePage({
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4">
           {article.title}
         </h1>
-        
-        {/**Edit Button For the creator */}
-        {currentUserId && article.author_id === currentUserId && (
-          <Link 
-          href={`/articles/${article.slug}/edit`}
-          className="inline-block ml-3 text-sm text-amber-400 hover:text-amber-300 align-middle"
-          >
-           ✏️ Edit 
-          </Link>
-        )}
-        
-
-        {/* Bookmark button, looks bad but works for some time */}
-        {user && ( 
-          <div className="mt-2">
-            <BookmarkButton articleId = { article.id} initialBookmarked={isBookmarked} />
-            </div>
-        )}
 
         <div className="flex items-center gap-3 text-gray-400 text-sm mb-6">
          
@@ -168,6 +154,8 @@ export default async function ArticlePage({
           <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-xs uppercase font-semibold">
             {article.User.badge}
           </span>
+
+          {/* Published Date */}
           {article.published_at && (
             <time dateTime={new Date(article.published_at).toISOString()}>
               {new Date(article.published_at).toLocaleDateString('en-US', {
@@ -176,6 +164,16 @@ export default async function ArticlePage({
                 day: 'numeric',
               })}
             </time>
+          )}
+
+          {/*Edit Button For the creator */}
+          {currentUserId && article.author_id === currentUserId && (
+            <Link 
+              href={`/articles/${article.slug}/edit`}
+              className="inline-block ml-3 text-sm text-amber-400 hover:text-amber-300 align-middle"
+            >
+              ✏️ Edit 
+            </Link>
           )}
         </div>
       </div>
@@ -188,13 +186,27 @@ export default async function ArticlePage({
                 className="max-w-full h-80 md:h-[32rem] object-cover rounded-xl shadow-lg"
             />
             
-            {/* ShareButtons */}
-              <ShareButtons title={article.title} url={currentUrl}/>
+      {/*Engagement Bar */}
+      <div className="flex items-center gap-4 mt-4">
+          {/* Add ArticleLikeDislike here */}
+          <ArticleLikeDislike
+            articleId={article.id}
+            initialLikes={likeInfo.likes}
+            initialDislikes={likeInfo.dislikes}
+            initialUserVote={likeInfo.userVote}
+          />
+          
+          {/* Bookmark button, looks bad but works for some time */}
+          {user && (
+            <BookmarkButton articleId={article.id} initialBookmarked={isBookmarked} />
+          )}
 
+          {/* ShareButtons */}
+          <ShareButtons title={article.title} url={currentUrl}/>
+                  
         </div>
+      </div>
       )}
-
-      
 
       {/* Two‑column layout */}
       <div className="max-w-4xl mx-auto px-4 pb-16 grid grid-cols-1 md:grid-cols-3 gap-8">
