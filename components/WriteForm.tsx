@@ -12,11 +12,13 @@ export default function WriteForm({ article }: WriteFormProps) {
   const isEditing = !!article
   const [type, setType] = useState<'deep_dive' | 'pulse'>(article?.type || 'deep_dive')
   const [slug, setSlug] = useState(article?.slug || '')
+  const [isDraft, setIsDraft] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const form = e.currentTarget as HTMLFormElement
     const formData = new FormData(form)
+    formData.append('isDraft', String(isDraft))
 
     if (isEditing) {
       await updateArticle(article.id, formData)
@@ -122,9 +124,22 @@ export default function WriteForm({ article }: WriteFormProps) {
         </>
       )}
 
-      <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-6 py-2 rounded-lg transition">
-        {isEditing ? 'Update Article' : 'Publish Article'}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          onClick={() => setIsDraft(false)}
+          className="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-6 py-2 rounded-lg transition"
+        >
+          {isEditing ? 'Update Article' : 'Publish Article'}
+        </button>
+        <button
+          type="submit"
+          onClick={() => setIsDraft(true)}
+          className="border border-gray-500 text-gray-300 hover:bg-gray-700 font-semibold px-6 py-2 rounded-lg transition"
+        >
+          Save as Draft
+        </button>
+      </div>
     </form>
   )
 }

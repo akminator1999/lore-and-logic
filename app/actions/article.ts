@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-/**
+/*
  * Create and publish an article from the submitted form data.
  * requires authenticated supabase user
  * Create any missing tags, links tags and an optional game
@@ -18,7 +18,7 @@ export async function createArticle(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
   
-    //resolve the authenticated acct. to the corresponding app database user.
+  //resolve the authenticated acct. to the corresponding app database user.
   const customUser = await prisma.user.findUnique({
     where: { email: user.email! },
     select: { id: true },
@@ -29,9 +29,14 @@ export async function createArticle(formData: FormData) {
   const title = formData.get('title') as string
   let slug = (formData.get('slug') as string) || ''
   
+  //Get isdraft flag from form data, if true, set is_published to false
+  const isDraft = formData.get('is_draft') === 'true'
+
   //genereate url friendly slug from the title
   if (!slug) {
-    slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    slug = isDraft
+      ? `draft-${Date.now()}`
+      : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   }
   const excerpt = formData.get('excerpt') as string
   const type = formData.get('type') as string
@@ -56,7 +61,7 @@ export async function createArticle(formData: FormData) {
     type,
     cover_image_url: coverImageUrl,
     author_id: customUser.id,
-    is_published: true,
+    is_published: !isDraft, // Draft = not published, Published = true
     published_at: new Date(),
     difficulty: type === 'deep_dive' ? difficulty : null,
     /*
@@ -104,7 +109,7 @@ export async function createArticle(formData: FormData) {
 
   // Refresh cached homepage content and take the author to new article.
   revalidatePath('/')
-  redirect(`/articles/${article.slug}`)
+  redirect(isDraft ? '/dashboard' : `/articles/${article.slug}`)
 }
 
 //update article function to edit existing article
@@ -123,7 +128,7 @@ export async function updateArticle( articleId: string, formData: FormData) {
   //1. Verify the article belongs to this user
   const existing = await prisma.article.findUnique({
     where: { id: articleId},
-    select: { author_id: true, type: true},
+    select: { author_id: true, type: true, is_published: true},
   })
   if (!existing || existing.author_id !== customUser.id) {
     throw new Error('Not authorised')
@@ -134,14 +139,21 @@ export async function updateArticle( articleId: string, formData: FormData) {
   const coverImageUrl = formData.get('cover_image_url') as string || null
   const tagNames = (formData.get('tags') as string || '').split(',').map(t => t.trim()).filter(Boolean)
   const gameSlug = formData.get('game_slug') as string || null
+  const isDraft = formData.get('is_draft') === 'true'
 
+  //If the article was unpublished and we're now publishing,set the published_at 
+  const wasUnpublished = !existing.is_published
   const updateData: any = {
     title,
     excerpt,
     cover_image_url: coverImageUrl,
     updated_at: new Date(),
+    is_published: !isDraft,
   }
-
+  if(!isDraft && wasUnpublished) {
+    updateData.pblished_at = new Date()
+  }
+  
   if (existing.type === 'deep_dive') {
     updateData.intro_gamer = formData.get('intro_gamer') as string
     updateData.intro_dev = formData.get('intro_dev') as string
