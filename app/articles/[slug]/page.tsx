@@ -10,6 +10,7 @@ import { headers } from 'next/headers'
 import ShareButtons from '@/components/ShareButtons'
 import { getArticleLikeInfo } from '@/app/actions/likes'
 import ArticleLikeDislike from '@/components/ArticleLikeDislike'
+import ViewTracker from '@/components/ViewTracker'
 
 async function getArticle(slug: string) {
   return await prisma.article.findUnique({
@@ -121,6 +122,8 @@ export default async function ArticlePage({
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
       
+      {/*View Tracker */}
+      <ViewTracker articleId={article.id}/>
 
       {/* Article Header */}
       <div className="max-w-4xl mx-auto px-4 pt-12 pb-6">
@@ -195,7 +198,7 @@ export default async function ArticlePage({
             initialDislikes={likeInfo.dislikes}
             initialUserVote={likeInfo.userVote}
           />
-          
+
           {/* Bookmark button, looks bad but works for some time */}
           {user && (
             <BookmarkButton articleId={article.id} initialBookmarked={isBookmarked} />

@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DashboardActions from '@/components/DashboardActions'
+import { subDays, startOfDay, format} from 'date-fns'
+import DashoardChart from '@/components/DashboardChart'
+import DashboardChart from '@/components/DashboardChart'
+
 
 // Helper to get stats for the author
 async function getStats(authorId: string) {
@@ -88,6 +92,41 @@ export default async function DashboardPage({
   // Get overall stats
   const stats = await getStats(customUser.id)
 
+  // Daily views for the last 7 days
+const today = startOfDay(new Date())
+const sevenDaysAgo = subDays(today, 6)
+
+const pageViews = await prisma.pageView.groupBy({
+  by: ['created_at'],
+  where: {
+    Article: { author_id: customUser.id },
+    created_at: { gte: sevenDaysAgo, lte: new Date() },
+  },
+  _count: { id: true },
+})
+
+// Format data for the chart
+const chartData = []
+for (let i = 6; i >= 0; i--) {
+  const date = subDays(today, i)
+  const dateStr = format(date, 'yyyy-MM-dd')
+  const count = pageViews
+    .filter(pv => format(new Date(pv.created_at), 'yyyy-MM-dd') === dateStr)
+    .reduce((sum, pv) => sum + pv._count.id, 0)
+  chartData.push({
+    date: format(date, 'EEE'), // Mon, Tue, etc.
+    views: count,
+  })
+}
+
+// Top 5 articles by views
+const topArticles = await prisma.article.findMany({
+  where: { author_id: customUser.id, is_published: true },
+  orderBy: { view_count: 'desc' },
+  take: 5,
+  select: { id: true, title: true, slug: true, view_count: true },
+})
+
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -122,8 +161,29 @@ export default async function DashboardPage({
           </div>
         </div>
 
+        {/*Daily Views Chart */}
+        <div className="mb-8">
+          <DashboardChart data={chartData}/>
+        </div>
+
+        {/* Top Articles */}
+        <div className="bg-[#131a2c] p-4 rounded-xl mb-5">
+          <h3 className="text-lg font-semibold mb-4">Top Articles by Views</h3>
+          <ul className="space-y-2">
+            {topArticles.map(article => (
+              <li key={article.id} className="flex justify-between items-center">
+                <Link href={`/articles/${article.slug}`} className="text-sm text-gray-300 hover:text-white truncate mr-4">
+                  {article.title}
+                </Link>
+                <span className="text-sm text-gray-400">{article.view_count} views</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* Filter Bar */}
-        <form method="GET" className="flex flex-wrap gap-3 mb-6">
+        
+        <form method="GET" className="flex flex-wrap gap-3 mb-3">
           <input
             type="text"
             name="search"
@@ -164,6 +224,7 @@ export default async function DashboardPage({
             </Link>
           )}
         </form>
+        
 
         {/* Table */}
         {articles.length === 0 ? (
