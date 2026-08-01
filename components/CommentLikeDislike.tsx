@@ -2,24 +2,32 @@
 
 import { useState, useTransition } from 'react'
 import { toggleCommentLike, removeCommentLike } from '@/app/actions/likes'
+import { useRouter} from 'next/navigation'
 
 export default function CommentLikeDislike({
   commentId,
   initialLikes,
   initialDislikes,
   initialUserVote,
+  isLoggedIn,
 }: {
   commentId: string
   initialLikes: number
   initialDislikes: number
   initialUserVote: string | null
+  isLoggedIn: boolean
 }) {
+    const router = useRouter()
   const [likes, setLikes] = useState(initialLikes)
   const [dislikes, setDislikes] = useState(initialDislikes)
   const [userVote, setUserVote] = useState<string | null>(initialUserVote)
   const [isPending, startTransition] = useTransition()
 
   const handleVote = (action: 'like' | 'dislike') => {
+    if(!isLoggedIn) {
+        router.push('/login')
+        return
+    }
     if (isPending) return
     startTransition(async () => {
       if (userVote === action) {

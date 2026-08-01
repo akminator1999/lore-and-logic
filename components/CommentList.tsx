@@ -129,6 +129,7 @@ function CommentNode({
               initialLikes={likes}
               initialDislikes={dislikes}
               initialUserVote={userVote}
+              isLoggedIn={currentUserId !== null}
           />
           )}       
           </>

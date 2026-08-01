@@ -197,6 +197,7 @@ export default async function ArticlePage({
             initialLikes={likeInfo.likes}
             initialDislikes={likeInfo.dislikes}
             initialUserVote={likeInfo.userVote}
+            isLoggedIn={!!user} //user is form supabase session
           />
 
           {/* Bookmark button, looks bad but works for some time */}
