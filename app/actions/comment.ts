@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { sendEmail } from '@/lib/email'
 
 export async function addComment(
     articleId: string,
@@ -32,14 +33,14 @@ export async function addComment(
     })
 
     //Comment action to create a notification
-   if (parentId) {
-  // Fetch the parent comment to get its author
-  const parent = await prisma.comment.findUnique({
-    where: { id: parentId },
-    select: { id: true, author_id: true, body: true, article_id: true },
-  })
+    if (parentId) {
+    // Fetch the parent comment to get its author
+    const parent = await prisma.comment.findUnique({
+        where: { id: parentId },
+        select: { id: true, author_id: true, body: true, article_id: true },
+    })
 
-  if (parent && parent.author_id !== customUser.id) {
+    if (parent && parent.author_id !== customUser.id) {
     const article = await prisma.article.findUnique({
       where: { id: articleId },
       select: { slug: true },
@@ -55,10 +56,8 @@ export async function addComment(
     })
   }
 }
-
-    //Revalidate the article page to new comments appear
-
-    revalidatePath(`/articles/[slug]`, 'page')
+//Revalidate the article page to new comments appear
+revalidatePath(`/articles/[slug]`, 'page')
 
 }
 

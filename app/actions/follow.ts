@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { sendEmail } from '@/lib/email'
 
 // Get current user's custom ID (helper)
 async function getCurrentUserId(): Promise<string | null> {
@@ -56,11 +57,12 @@ export async function toggleFollow(followingId: string): Promise<{ isFollowing: 
     // Create notification for the followed user
     const followedUser = await prisma.user.findUnique({
       where: { id: followingId },
-      select: { username: true },
+      select: { username: true, email: true },
     })
+
     const followerUser = await prisma.user.findUnique({
       where: { id: followerId },
-      select: { username: true },
+      select: { username: true, email: true },
     })
     if (followedUser && followerUser) {
       await prisma.notification.create({
@@ -71,6 +73,17 @@ export async function toggleFollow(followingId: string): Promise<{ isFollowing: 
           link: `/profile/${followerUser.username}`,
         },
       })
+
+      //Send email to followed user
+      const followedEmail = followedUser.email
+      if(followedUser.email) {
+       await sendEmail({
+        to: followedUser.email,
+        subject: `${followerUser.username} started following you on Lore & Logic`,
+        body: `${followerUser.username} just followed you. Connect and share your gaming wisdom together!`,
+        actionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/profile/${followerUser.username}`,
+      })
+      }
     }
 
     revalidatePath(`/profile/[username]`, 'page')
