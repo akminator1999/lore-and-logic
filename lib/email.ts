@@ -2,11 +2,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
- const fromAddress = process.env.EMAIL_FROM || 'Lore & Logic <notifications@loreandlogic.com>'
+const fromAddress = process.env.EMAIL_FROM || 'Lore & Logic <onboarding@resend.dev>'
 
- const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+ 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
- export async function sendEmail({
+export async function sendEmail({
     to,
     subject,
     body,

@@ -54,6 +54,23 @@ export async function addComment(
         link: article ? `/articles/${article.slug}#comment-${parent.id}` : null,
       },
     })
+
+    //EMAIL - inside the guard to ensure parent exists and is not the same user
+    const parentAuthor = await prisma.user.findUnique({
+        where: { id: parent.author_id },
+        select: { email: true, username: true },
+    })
+
+    if (parentAuthor?.email) {
+      await sendEmail({
+        to: parentAuthor.email,
+        subject: `${customUser.username} replied to your comment on Lore & Logic`,
+        body: `${customUser.username} replied to your comment: "${parent.body.slice(0, 80)}${parent.body.length > 80 ? '...' : ''}"`,
+        actionUrl: article
+          ? `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/articles/${article.slug}#comment-${parent.id}`
+          : undefined,
+      })
+    }
   }
 }
 //Revalidate the article page to new comments appear

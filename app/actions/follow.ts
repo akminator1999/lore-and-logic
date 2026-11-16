@@ -57,12 +57,12 @@ export async function toggleFollow(followingId: string): Promise<{ isFollowing: 
     // Create notification for the followed user
     const followedUser = await prisma.user.findUnique({
       where: { id: followingId },
-      select: { username: true, email: true },
+      select: { username: true, email: true }, // email required
     })
 
     const followerUser = await prisma.user.findUnique({
       where: { id: followerId },
-      select: { username: true, email: true },
+      select: { username: true},
     })
     if (followedUser && followerUser) {
       await prisma.notification.create({
